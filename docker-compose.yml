@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: mentor-postgres-db
+    environment:
+      POSTGRES_DB: mentor_platform
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_secret
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres_docker_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d mentor_platform"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: mentor-redis-cache
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_docker_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mentor-express-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "5000:5000"
+    environment:
+      NODE_ENV: development
+      PORT: 5000
+      DATABASE_URL: postgresql://postgres:postgres_secret@postgres:5432/mentor_platform?schema=public
+      REDIS_URL: redis://redis:6379
+      JWT_ACCESS_SECRET: your-super-secret-access-key-min-32-chars-here
+      JWT_REFRESH_SECRET: your-super-secret-refresh-key-min-32-chars-here
+      ACCESS_TOKEN_EXPIRES: 15m
+      REFRESH_TOKEN_EXPIRES: 7d
+      CLIENT_URL: http://localhost:3000
+    restart: always
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: mentor-react-frontend
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+    restart: always
+
+volumes:
+  postgres_docker_data:
+  redis_docker_data:

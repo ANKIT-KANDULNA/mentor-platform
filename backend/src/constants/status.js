@@ -1,0 +1,17 @@
+const SESSION_STATUS = {
+  SCHEDULED: 'SCHEDULED',
+  LIVE: 'LIVE',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED',
+};
+
+const ROLES = {
+  STUDENT: 'STUDENT',
+  MENTOR: 'MENTOR',
+  ADMIN: 'ADMIN',
+};
+
+module.exports = {
+  SESSION_STATUS,
+  ROLES,
+};
