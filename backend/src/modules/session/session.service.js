@@ -27,6 +27,7 @@ const createSession = async (currentUser, sessionData) => {
     maxParticipants: maxParticipants ? parseInt(maxParticipants) : 1,
     creatorId: currentUser.id,
     mentorProfileId,
+    status: currentUser.role === 'MENTOR' ? 'SCHEDULED' : 'PENDING',
   });
 };
 
@@ -88,7 +89,14 @@ const updateSessionStatus = async (sessionId, currentUser, status) => {
   // Only the mentor of the session or creator can update status
   const isMentor = currentUser.role === 'MENTOR' && session.mentorProfile?.userId === currentUser.id;
   const isCreator = session.creatorId === currentUser.id;
-  if (!isMentor && !isCreator) throw new AppError('Unauthorized to update this session', 403);
+
+  if (status === 'SCHEDULED' && session.status === 'PENDING') {
+    if (!isMentor) throw new AppError('Only the mentor can approve a pending session', 403);
+  } else if (status === 'CANCELLED' && session.status === 'PENDING') {
+    if (!isMentor && !isCreator) throw new AppError('Unauthorized to decline this session', 403);
+  } else {
+    if (!isMentor && !isCreator) throw new AppError('Unauthorized to update this session', 403);
+  }
 
   return sessionRepo.updateSessionStatus(sessionId, status);
 };

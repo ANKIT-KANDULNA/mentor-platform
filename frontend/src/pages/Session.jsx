@@ -116,8 +116,8 @@ export default function Session() {
   };
 
   const now = new Date();
-  const upcoming = sessions.filter(s => s.status === 'SCHEDULED' && new Date(s.scheduledAt) >= now);
-  const past = sessions.filter(s => s.status !== 'SCHEDULED' || new Date(s.scheduledAt) < now);
+  const upcoming = sessions.filter(s => (s.status === 'SCHEDULED' || s.status === 'PENDING') && new Date(s.scheduledAt) >= now);
+  const past = sessions.filter(s => (s.status !== 'SCHEDULED' && s.status !== 'PENDING') || new Date(s.scheduledAt) < now);
   const displayedSessions = activeTab === 'upcoming' ? upcoming : past;
 
   return (
@@ -252,6 +252,7 @@ function SessionCard({ session, user, updatingId, onStatusUpdate, onJoinCall }) 
   const isUpcoming = new Date() < scheduledDate;
 
   const statusConfig = {
+    PENDING: { color: '#F59E0B', bg: 'rgba(245,158,11,0.1)', label: 'Pending Approval', icon: <AlertCircle size={14} /> },
     SCHEDULED: { color: '#10B981', bg: 'rgba(16,185,129,0.1)', label: 'Scheduled', icon: <CheckCircle2 size={14} /> },
     LIVE: { color: '#EF4444', bg: 'rgba(239,68,68,0.1)', label: '🔴 LIVE', icon: null },
     COMPLETED: { color: '#9CA3AF', bg: 'rgba(156,163,175,0.1)', label: 'Completed', icon: <CheckCircle2 size={14} /> },
@@ -306,7 +307,46 @@ function SessionCard({ session, user, updatingId, onStatusUpdate, onJoinCall }) 
       </div>
 
       {/* Actions */}
-      <div style={{ display: 'flex', gap: '10px', marginTop: 'auto' }}>
+      <div style={{ display: 'flex', gap: '10px', marginTop: 'auto', width: '100%' }}>
+        {session.status === 'PENDING' && isMentor && (
+          <div style={{ display: 'flex', gap: '10px', width: '100%' }}>
+            <button
+              onClick={() => onStatusUpdate(session.id, 'SCHEDULED')}
+              disabled={isUpdating}
+              className="btn btn-primary"
+              style={{ flex: 1, background: '#10B981', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px' }}
+            >
+              {isUpdating ? '...' : <>Accept Request</>}
+            </button>
+            <button
+              onClick={() => onStatusUpdate(session.id, 'CANCELLED')}
+              disabled={isUpdating}
+              className="btn"
+              style={{ flex: 1, background: 'rgba(239,68,68,0.1)', color: '#EF4444', border: '1px solid rgba(239,68,68,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', cursor: 'pointer', borderRadius: '10px' }}
+            >
+              {isUpdating ? '...' : <>Decline</>}
+            </button>
+          </div>
+        )}
+
+        {session.status === 'PENDING' && !isMentor && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
+            <div style={{ fontSize: '0.8rem', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
+              <AlertCircle size={14} /> Waiting for mentor approval
+            </div>
+            <button
+              onClick={() => onStatusUpdate(session.id, 'CANCELLED')}
+              disabled={isUpdating}
+              style={{
+                width: '100%', padding: '8px 14px', borderRadius: '8px', border: '1px solid rgba(239,68,68,0.3)',
+                background: 'transparent', color: '#EF4444', cursor: 'pointer', fontSize: '0.82rem',
+              }}
+            >
+              {isUpdating ? '...' : 'Cancel Request'}
+            </button>
+          </div>
+        )}
+
         {session.status === 'SCHEDULED' && isMentor && (
           <button
             onClick={() => onStatusUpdate(session.id, 'CANCELLED')}

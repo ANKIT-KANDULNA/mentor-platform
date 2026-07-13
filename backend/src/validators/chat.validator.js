@@ -1,7 +1,10 @@
 const { z } = require('zod');
 
 const createConversationSchema = z.object({
-  userId: z.string().uuid('Invalid user ID'),
+  userId: z.string().uuid('Invalid user ID').optional(),
+  otherUserId: z.string().uuid('Invalid user ID').optional(),
+}).refine(data => data.userId || data.otherUserId, {
+  message: "Either userId or otherUserId must be provided",
 });
 
 const sendMessageSchema = z.object({

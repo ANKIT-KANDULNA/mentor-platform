@@ -9,7 +9,7 @@ import MentorList from './pages/MentorList';
 import MentorProfile from './pages/MentorProfile';
 import Session from './pages/Session';
 import Chat from './pages/Chat';
-import GlobalChat from './pages/GlobalChat';
+import Communities from './pages/Communities';
 import MentorOnboarding from './pages/MentorOnboarding';
 
 /**
@@ -37,7 +37,7 @@ export default function App() {
                   <Route path="/mentors/:id" element={<MentorProfile />} />
                   <Route path="/sessions" element={<Session />} />
                   <Route path="/chat" element={<Chat />} />
-                  <Route path="/community" element={<GlobalChat />} />
+                  <Route path="/community" element={<Communities />} />
                   <Route path="/onboarding" element={<MentorOnboarding />} />
                   <Route path="/profile" element={<MentorOnboarding />} />
                   <Route path="*" element={<Navigate to="/dashboard" replace />} />

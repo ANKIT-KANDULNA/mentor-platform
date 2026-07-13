@@ -17,7 +17,7 @@ const setupGlobalChatSocket = (io, socket) => {
 
       const message = await prisma.globalMessage.create({
         data: { content: content.trim(), senderId: userId },
-        include: { sender: { select: { id: true, fullName: true } } },
+        include: { sender: { select: { id: true, fullName: true, role: true } } },
       });
 
       io.to('global-chat').emit(SOCKET_EVENTS.GLOBAL_MESSAGE, message);

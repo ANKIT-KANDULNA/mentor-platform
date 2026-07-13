@@ -14,6 +14,7 @@ enum Role {
 }
 
 enum SessionStatus {
+  PENDING
   SCHEDULED
   LIVE
   COMPLETED
@@ -31,6 +32,11 @@ enum NotificationType {
   SESSION_BOOKED
   REVIEW_RECEIVED
   SYSTEM
+}
+
+enum CommunityMemberRole {
+  OWNER
+  MEMBER
 }
 
 model User {
@@ -59,6 +65,9 @@ model User {
   sessionParticipants SessionParticipant[]
   notifications     Notification[]
   reviewsGiven      MentorReview[]    @relation("ReviewAuthor")
+  createdCommunities    Community[]         @relation("CommunityCreator")
+  communityMemberships  CommunityMember[]
+  communityMessages     CommunityMessage[]
 
   @@index([email])
   @@index([role])
@@ -164,6 +173,53 @@ model GlobalMessage {
   sender    User     @relation(fields: [senderId], references: [id])
 
   @@index([createdAt])
+  @@index([senderId])
+}
+
+model Community {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  description String?
+  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  creatorId String
+  creator   User              @relation("CommunityCreator", fields: [creatorId], references: [id])
+  members   CommunityMember[]
+  messages  CommunityMessage[]
+
+  @@index([slug])
+  @@index([creatorId])
+}
+
+model CommunityMember {
+  id          String              @id @default(uuid())
+  role        CommunityMemberRole @default(MEMBER)
+  joinedAt    DateTime            @default(now())
+
+  userId      String
+  communityId String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, communityId])
+  @@index([communityId])
+  @@index([userId])
+}
+
+model CommunityMessage {
+  id          String   @id @default(uuid())
+  content     String
+  createdAt   DateTime @default(now())
+
+  senderId    String
+  communityId String
+  sender      User      @relation(fields: [senderId], references: [id])
+  community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+
+  @@index([communityId, createdAt])
   @@index([senderId])
 }
 

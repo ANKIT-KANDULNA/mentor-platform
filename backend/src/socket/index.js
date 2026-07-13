@@ -7,6 +7,7 @@ const { setupChatSocket } = require('./handlers/chat.handlers');
 const { setupGlobalChatSocket } = require('./handlers/globalChat.handlers');
 const { setupSessionSocket } = require('./handlers/session.handlers');
 const { setupWebRTCSocket } = require('./handlers/webrtc.handlers');
+const { setupCommunitySocket } = require('./handlers/community.handlers');
 const env = require('../config/env');
 
 let ioInstance;
@@ -42,6 +43,7 @@ const initializeSocket = async (httpServer) => {
     setupGlobalChatSocket(io, socket);
     setupSessionSocket(io, socket);
     setupWebRTCSocket(io, socket);
+    setupCommunitySocket(io, socket);
   });
 
   return io;

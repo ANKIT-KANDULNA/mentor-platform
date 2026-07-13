@@ -26,6 +26,10 @@ const startServer = async () => {
     await prisma.$connect();
     console.log('✅ PostgreSQL connected');
 
+    // Seed default community if necessary
+    const { seedDefaultCommunity } = require('./db/seed');
+    await seedDefaultCommunity();
+
     // Create HTTP server
     const httpServer = http.createServer(app);
 

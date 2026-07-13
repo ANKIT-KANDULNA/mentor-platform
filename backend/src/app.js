@@ -15,6 +15,7 @@ const dashboardRoutes = require('./modules/dashboard/dashboard.routes');
 const sessionRoutes = require('./modules/session/session.routes');
 const notificationRoutes = require('./modules/notification/notification.routes');
 const reviewRoutes = require('./modules/review/review.routes');
+const communityRoutes = require('./modules/community/community.routes');
 
 const app = express();
 
@@ -51,6 +52,7 @@ app.use('/api/v1/dashboard', dashboardRoutes);
 app.use('/api/v1/sessions', sessionRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/reviews', reviewRoutes);
+app.use('/api/v1/communities', communityRoutes);
 
 // 404 handler
 app.use((req, res) => {

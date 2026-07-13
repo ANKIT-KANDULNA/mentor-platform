@@ -19,6 +19,12 @@ const SOCKET_EVENTS = {
   JOIN_GLOBAL: 'join-global-chat',
   SEND_GLOBAL: 'send-global-message',
   GLOBAL_MESSAGE: 'global-message',
+
+  // Communities
+  JOIN_COMMUNITY: 'join-community',
+  LEAVE_COMMUNITY: 'leave-community',
+  SEND_COMMUNITY_MSG: 'send-community-message',
+  COMMUNITY_MESSAGE: 'community-message',
   
   // Presence
   USER_ONLINE: 'user-online',

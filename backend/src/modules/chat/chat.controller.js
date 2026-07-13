@@ -5,7 +5,7 @@ const { sendSuccess } = require('../../utils/response');
 const createConversation = asyncHandler(async (req, res) => {
   const conversation = await chatService.createOrGetConversation(
     req.user.id,
-    req.body.userId
+    req.body.userId || req.body.otherUserId
   );
   sendSuccess(res, conversation, 201);
 });

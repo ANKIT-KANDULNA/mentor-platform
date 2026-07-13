@@ -22,7 +22,7 @@ services:
     image: redis:7-alpine
     container_name: mentor-redis-cache
     ports:
-      - "6379:6379"
+      - "6380:6379"
     volumes:
       - redis_docker_data:/data
     healthcheck:
