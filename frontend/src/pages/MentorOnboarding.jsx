@@ -135,7 +135,7 @@ export default function MentorOnboarding() {
         <div style={{ height: '6px', background: 'rgba(255,255,255,0.08)', borderRadius: '999px', overflow: 'hidden' }}>
           <div style={{
             height: '100%', width: `${(step / totalSteps) * 100}%`,
-            background: 'linear-gradient(90deg, var(--color-primary), var(--color-secondary))',
+            background: 'var(--color-primary)',
             borderRadius: '999px', transition: 'width 0.5s ease',
           }} />
         </div>

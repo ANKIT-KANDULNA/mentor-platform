@@ -7,191 +7,30 @@ import { connectSocket, getSocket } from '../socket/socket';
 import SOCKET_EVENTS from '../constants/events';
 import VideoCall from '../components/VideoCall';
 import {
-  Send, Search, Video, Phone, MoreVertical, Smile, Paperclip,
-  Loader, ArrowLeft, Circle, X, MessageSquare,
+  Send, Search, Video, Phone, MoreVertical, Paperclip,
+  Loader, ArrowLeft, Circle, X, MessageSquare, Pin, MessageCircle
 } from 'lucide-react';
 
-/* ─────────────────────────────────────────────
-   Emoji Picker (lightweight, no dependency)
-───────────────────────────────────────────── */
-const EMOJI_ROWS = [
-  ['😀','😂','🥲','😍','🥰','😎','🤩','😭','😤','🤔'],
-  ['👍','👎','🙏','🤝','✌️','🔥','💯','🎉','❤️','💜'],
-  ['🚀','⭐','💡','📌','📎','🎯','🌟','💪','🧠','🤖'],
-];
 
-function EmojiPicker({ onSelect, onClose }) {
-  const ref = useRef(null);
-  useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [onClose]);
 
-  return (
-    <div ref={ref} style={{
-      position: 'absolute', bottom: '64px', left: '16px',
-      background: 'rgba(20,26,40,0.98)', backdropFilter: 'blur(20px)',
-      border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px',
-      padding: '12px', zIndex: 100, boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
-      animation: 'scaleIn 0.15s ease forwards',
-    }}>
-      {EMOJI_ROWS.map((row, i) => (
-        <div key={i} style={{ display: 'flex', gap: '4px', marginBottom: i < EMOJI_ROWS.length - 1 ? '4px' : 0 }}>
-          {row.map(emoji => (
-            <button key={emoji} onClick={() => onSelect(emoji)} style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              fontSize: '1.4rem', padding: '4px', borderRadius: '8px',
-              transition: 'background 0.1s',
-              lineHeight: 1,
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(139,92,246,0.2)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'none'}
-            >{emoji}</button>
-          ))}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/* ─────────────────────────────────────────────
-   Avatar Helper
-───────────────────────────────────────────── */
-function Avatar({ name, size = 40, gradient = 'linear-gradient(135deg,#8B5CF6,#7c3aed)' }) {
+function Avatar({ name, size = 40 }) {
   const initials = name?.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || '??';
   return (
     <div style={{
       width: size, height: size, borderRadius: '50%',
-      background: gradient, display: 'flex', alignItems: 'center',
-      justifyContent: 'center', color: '#FFF', fontWeight: 700,
-      fontSize: size * 0.35, flexShrink: 0, letterSpacing: '0.5px',
+      background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-hover))',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      color: '#FFF', fontWeight: 700, fontSize: size * 0.35, flexShrink: 0
     }}>{initials}</div>
   );
 }
 
-/* ─────────────────────────────────────────────
-   Online dot
-───────────────────────────────────────────── */
-function OnlineDot({ online }) {
-  if (!online) return null;
-  return (
-    <div style={{
-      width: 10, height: 10, borderRadius: '50%',
-      background: '#10B981', border: '2px solid var(--bg-main)',
-      position: 'absolute', bottom: 0, right: 0,
-      boxShadow: '0 0 6px rgba(16,185,129,0.6)',
-    }} />
-  );
-}
-
-/* ─────────────────────────────────────────────
-   Time formatting
-───────────────────────────────────────────── */
 function formatTime(dateStr) {
   if (!dateStr) return '';
   const d = new Date(dateStr);
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-function formatConvTime(dateStr) {
-  if (!dateStr) return '';
-  const d = new Date(dateStr);
-  const now = new Date();
-  const diffDays = Math.floor((now - d) / 86400000);
-  if (diffDays === 0) return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  if (diffDays === 1) return 'Yesterday';
-  if (diffDays < 7) return d.toLocaleDateString([], { weekday: 'short' });
-  return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
-}
-
-/* ─────────────────────────────────────────────
-   Message Bubble
-───────────────────────────────────────────── */
-function MessageBubble({ msg, isMine, prevMsg }) {
-  const showAvatar = !isMine && (!prevMsg || prevMsg.senderId !== msg.senderId);
-  return (
-    <div style={{
-      display: 'flex',
-      justifyContent: isMine ? 'flex-end' : 'flex-start',
-      alignItems: 'flex-end',
-      gap: '8px',
-      marginBottom: '4px',
-    }}>
-      {!isMine && (
-        <div style={{ width: 28, flexShrink: 0 }}>
-          {showAvatar && (
-            <Avatar name={msg.sender?.fullName || 'U'} size={28}
-              gradient="linear-gradient(135deg,#06B6D4,#0891b2)" />
-          )}
-        </div>
-      )}
-      <div style={{
-        maxWidth: '62%',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: isMine ? 'flex-end' : 'flex-start',
-        gap: '2px',
-      }}>
-        <div style={{
-          padding: '10px 15px',
-          borderRadius: '18px',
-          borderBottomRightRadius: isMine ? '4px' : '18px',
-          borderBottomLeftRadius: isMine ? '18px' : '4px',
-          background: isMine
-            ? 'linear-gradient(135deg,#8B5CF6,#7c3aed)'
-            : 'rgba(30,38,55,0.9)',
-          color: '#FFF',
-          fontSize: '0.9rem',
-          lineHeight: '1.45',
-          wordBreak: 'break-word',
-          boxShadow: isMine
-            ? '0 4px 12px rgba(139,92,246,0.25)'
-            : '0 2px 8px rgba(0,0,0,0.2)',
-          border: isMine ? 'none' : '1px solid rgba(255,255,255,0.07)',
-        }}>
-          {msg.content}
-        </div>
-        <div style={{
-          fontSize: '0.68rem',
-          color: 'rgba(255,255,255,0.3)',
-          padding: '0 4px',
-        }}>
-          {formatTime(msg.createdAt)}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ─────────────────────────────────────────────
-   Date separator
-───────────────────────────────────────────── */
-function DateSeparator({ dateStr }) {
-  const label = (() => {
-    const d = new Date(dateStr);
-    const now = new Date();
-    const diff = Math.floor((now - d) / 86400000);
-    if (diff === 0) return 'Today';
-    if (diff === 1) return 'Yesterday';
-    return d.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
-  })();
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '16px 0 8px' }}>
-      <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
-      <span style={{
-        fontSize: '0.72rem', color: 'rgba(255,255,255,0.35)',
-        background: 'rgba(255,255,255,0.05)', padding: '3px 12px',
-        borderRadius: '999px', letterSpacing: '0.5px', whiteSpace: 'nowrap',
-      }}>{label}</span>
-      <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
-    </div>
-  );
-}
-
-/* ─────────────────────────────────────────────
-   Main Chat Component
-───────────────────────────────────────────── */
 export default function Chat() {
   const { user: currentUser } = useAuthStore();
   const {
@@ -202,12 +41,18 @@ export default function Chat() {
 
   const [text, setText] = useState('');
   const [search, setSearch] = useState('');
-  const [showEmoji, setShowEmoji] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState([]);
-  const [activeCall, setActiveCall] = useState(null); // { targetUserId, targetName }
-  const [incomingCall, setIncomingCall] = useState(null); // { callerId, callerName, callId }
+  const [activeCall, setActiveCall] = useState(null);
+  const [incomingCall, setIncomingCall] = useState(null);
   const [unreadCounts, setUnreadCounts] = useState({});
   const [mobileSidebar, setMobileSidebar] = useState(true);
+
+  // Pinned Resources state
+  const [pinnedResources, setPinnedResources] = useState([
+    { title: 'System Design Interview Cheatsheet', url: '#' },
+    { title: 'React Performance Benchmarks', url: '#' }
+  ]);
+  const [showPins, setShowPins] = useState(false);
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -216,17 +61,14 @@ export default function Chat() {
   const queryParams = new URLSearchParams(location.search);
   const targetUserId = queryParams.get('userId');
 
-  // ── Socket setup ──────────────────────────
   useEffect(() => {
     getConversations();
     connectSocket();
-
     const socket = getSocket();
     if (!socket) return;
 
     socket.on(SOCKET_EVENTS.RECEIVE_MESSAGE, (msg) => {
       addMessage(msg);
-      // Track unread
       const active = useChatStore.getState().activeConversation;
       if (!active || active.id !== msg.conversationId) {
         setUnreadCounts(prev => ({
@@ -245,8 +87,6 @@ export default function Chat() {
     });
 
     socket.on(SOCKET_EVENTS.ONLINE_USERS, (users) => setOnlineUsers(users));
-
-    // WebRTC incoming call
     socket.on('webrtc:call-request', ({ callerId, callerName, sessionId }) => {
       setIncomingCall({ callerId, callerName, sessionId });
     });
@@ -260,7 +100,6 @@ export default function Chat() {
     };
   }, [getConversations, addMessage, setUserTyping, currentUser.id]);
 
-  // ── Auto-start conversation from URL ──────
   useEffect(() => {
     const startNewConv = async () => {
       if (targetUserId) {
@@ -272,19 +111,17 @@ export default function Chat() {
           getConversations();
           setMobileSidebar(false);
         } catch (err) {
-          console.error('Failed to create conversation:', err.message);
+          console.error(err);
         }
       }
     };
     startNewConv();
   }, [targetUserId, setActiveConversation, getConversations]);
 
-  // ── Scroll to bottom ──────────────────────
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // ── Room join/leave ───────────────────────
   useEffect(() => {
     const socket = getSocket();
     if (socket && activeConversation) {
@@ -299,7 +136,6 @@ export default function Chat() {
     };
   }, [activeConversation]);
 
-  // ── Helpers ───────────────────────────────
   const getOpponentUser = useCallback((conv) => {
     return conv.userAId === currentUser.id ? conv.userB : conv.userA;
   }, [currentUser.id]);
@@ -313,7 +149,6 @@ export default function Chat() {
     return opponent?.fullName?.toLowerCase().includes(search.toLowerCase());
   });
 
-  // ── Typing ────────────────────────────────
   const handleKeyDown = () => {
     const socket = getSocket();
     if (socket && activeConversation) {
@@ -325,7 +160,6 @@ export default function Chat() {
     }
   };
 
-  // ── Send ──────────────────────────────────
   const handleSend = async (e) => {
     e.preventDefault();
     if (!text.trim() || !activeConversation) return;
@@ -334,65 +168,14 @@ export default function Chat() {
     try {
       await sendMessage(activeConversation.id, text.trim());
       setText('');
-      setShowEmoji(false);
       inputRef.current?.focus();
     } catch (err) {
-      console.error('Send failed:', err.message);
+      console.error(err);
     }
   };
 
-  // ── Select conversation ───────────────────
-  const handleSelectConv = (conv) => {
-    setActiveConversation(conv);
-    setUnreadCounts(prev => ({ ...prev, [conv.id]: 0 }));
-    setMobileSidebar(false);
-  };
-
-  // ── Date separators ───────────────────────
-  const msgsWithDates = (() => {
-    const result = [];
-    let lastDate = null;
-    messages.forEach((msg, i) => {
-      const dateKey = new Date(msg.createdAt).toDateString();
-      if (dateKey !== lastDate) {
-        result.push({ type: 'date', key: `date-${i}`, dateStr: msg.createdAt });
-        lastDate = dateKey;
-      }
-      result.push({ type: 'msg', key: msg.id, msg, prev: messages[i - 1] });
-    });
-    return result;
-  })();
-
-  // ── Video call ────────────────────────────
-  const startVideoCall = () => {
-    if (!activeOpponent) return;
-    setActiveCall({
-      targetUserId: activeOpponent.id,
-      targetName: activeOpponent.fullName,
-    });
-  };
-
-  const acceptIncomingCall = () => {
-    if (!incomingCall) return;
-    setActiveCall({
-      targetUserId: incomingCall.callerId,
-      targetName: incomingCall.callerName,
-    });
-    setIncomingCall(null);
-  };
-
-  const rejectCall = () => {
-    const socket = getSocket();
-    if (socket && incomingCall) {
-      socket.emit('webrtc:call-rejected', { callerId: incomingCall.callerId });
-    }
-    setIncomingCall(null);
-  };
-
-  // ─────────────────────────────────────────
   return (
     <>
-      {/* Active Video Call overlay */}
       {activeCall && (
         <VideoCall
           targetUserId={activeCall.targetUserId}
@@ -401,412 +184,144 @@ export default function Chat() {
         />
       )}
 
-      {/* Incoming Call Toast */}
       {incomingCall && (
         <div style={{
           position: 'fixed', bottom: '24px', right: '24px', zIndex: 9998,
-          background: 'rgba(20,26,40,0.98)', backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(16,185,129,0.4)', borderRadius: '20px',
-          padding: '20px 24px', boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+          background: 'var(--bg-surface)', border: '1px solid var(--color-primary)',
+          borderRadius: '16px', padding: '20px 24px', boxShadow: 'var(--shadow-lg)',
           display: 'flex', alignItems: 'center', gap: '16px',
-          animation: 'slideUp 0.3s ease forwards', minWidth: '320px',
         }}>
-          <div style={{
-            width: 48, height: 48, borderRadius: '50%',
-            background: 'linear-gradient(135deg,#10B981,#059669)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            animation: 'ringPulse 1.5s infinite', flexShrink: 0,
-          }}>
-            <Video size={22} color="#FFF" />
+          <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'var(--color-primary-glow)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Video size={22} color="var(--color-primary)" />
           </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#FFF' }}>
-              Incoming Call
-            </div>
-            <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.82rem' }}>
-              {incomingCall.callerName} is calling...
-            </div>
+          <div>
+            <div style={{ fontWeight: 700, color: '#FFF', fontSize: '0.95rem' }}>Incoming Video Call</div>
+            <div style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>{incomingCall.callerName} calling...</div>
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button onClick={acceptIncomingCall} style={{
-              background: '#10B981', border: 'none', borderRadius: '12px',
-              padding: '8px 14px', cursor: 'pointer', color: '#FFF', fontWeight: 600,
-              fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '4px',
-            }}>
-              <Phone size={14} /> Accept
-            </button>
-            <button onClick={rejectCall} style={{
-              background: '#EF4444', border: 'none', borderRadius: '12px',
-              padding: '8px 14px', cursor: 'pointer', color: '#FFF', fontWeight: 600,
-              fontSize: '0.82rem',
-            }}>Decline</button>
+            <button onClick={acceptIncomingCall} className="btn-primary" style={{ padding: '6px 12px', fontSize: '0.82rem' }}>Accept</button>
+            <button onClick={rejectCall} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.82rem', color: 'var(--status-danger)' }}>Decline</button>
           </div>
         </div>
       )}
 
-      {/* Main Chat Layout */}
-      <div className="glass-panel animate-fade" style={{
-        display: 'flex',
-        height: 'calc(100vh - 110px)',
-        padding: 0,
-        overflow: 'hidden',
-        borderRadius: '20px',
-      }}>
-
-        {/* ── Sidebar ─────────────────────────── */}
-        <div style={{
-          width: '320px',
-          flexShrink: 0,
-          display: mobileSidebar ? 'flex' : 'flex',
-          flexDirection: 'column',
-          borderRight: '1px solid rgba(255,255,255,0.07)',
-          background: 'rgba(11,14,20,0.6)',
-        }}>
-          {/* Sidebar header */}
+      <div className="glass-panel animate-fade" style={{ display: 'flex', height: 'calc(100vh - 110px)', padding: 0, overflow: 'hidden', borderRadius: '20px' }}>
+        
+        {/* Left Side: Conversations list */}
+        <div style={{ width: '300px', display: 'flex', flexDirection: 'column', borderRight: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.1)' }}>
           <div style={{ padding: '20px 18px 12px' }}>
-            <div style={{
-              fontFamily: 'var(--font-display)', fontWeight: 700,
-              fontSize: '1.15rem', marginBottom: '14px',
-              background: 'linear-gradient(135deg,#F3F4F6,#9CA3AF)',
-              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-            }}>Messages</div>
+            <h4 style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '1.1rem', marginBottom: '12px' }}>Direct Messages</h4>
             <div style={{ position: 'relative' }}>
-              <Search size={15} style={{
-                position: 'absolute', left: '12px', top: '50%',
-                transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)',
-              }} />
-              <input
-                type="text"
-                placeholder="Search conversations..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="input-field"
-                style={{ width: '100%', paddingLeft: '36px', fontSize: '0.85rem', height: '38px' }}
-              />
+              <Search size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+              <input type="text" placeholder="Search conversations..." value={search} onChange={e => setSearch(e.target.value)} className="input-field" style={{ width: '100%', paddingLeft: '36px', height: '36px', fontSize: '0.85rem' }} />
             </div>
           </div>
 
-          {/* Conversation list */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '4px 8px' }}>
-            {loading && conversations.length === 0 ? (
-              <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
-                <Loader size={22} style={{ animation: 'spin 1s linear infinite', color: 'var(--color-primary)' }} />
-              </div>
-            ) : filteredConversations.length === 0 ? (
-              <div style={{
-                padding: '40px 16px', textAlign: 'center',
-                color: 'rgba(255,255,255,0.3)', fontSize: '0.85rem',
-              }}>
-                <MessageSquare size={36} style={{ margin: '0 auto 12px', opacity: 0.3 }} />
-                {search ? 'No results found' : 'No conversations yet.\nGo to Mentors to start a chat!'}
-              </div>
-            ) : (
-              filteredConversations.map((conv) => {
-                const opponent = getOpponentUser(conv);
-                const isActive = activeConversation?.id === conv.id;
-                const unread = unreadCounts[conv.id] || 0;
-                const isOnline = onlineUsers.includes(opponent?.id);
-                return (
-                  <button
-                    key={conv.id}
-                    onClick={() => handleSelectConv(conv)}
-                    style={{
-                      width: '100%', background: isActive
-                        ? 'linear-gradient(135deg,rgba(139,92,246,0.15),rgba(139,92,246,0.05))'
-                        : 'transparent',
-                      border: 'none', borderRadius: '14px',
-                      padding: '12px', display: 'flex',
-                      alignItems: 'center', gap: '12px', cursor: 'pointer',
-                      textAlign: 'left', transition: 'all 0.15s',
-                      borderLeft: isActive ? '3px solid var(--color-primary)' : '3px solid transparent',
-                      marginBottom: '2px',
-                    }}
-                    onMouseEnter={e => {
-                      if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
-                    }}
-                    onMouseLeave={e => {
-                      if (!isActive) e.currentTarget.style.background = 'transparent';
-                    }}
-                  >
-                    <div style={{ position: 'relative', flexShrink: 0 }}>
-                      <Avatar name={opponent?.fullName} size={42} />
-                      <OnlineDot online={isOnline} />
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                        <div style={{
-                          fontWeight: isActive ? 700 : 600, color: '#F3F4F6',
-                          fontSize: '0.88rem', overflow: 'hidden',
-                          textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1,
-                        }}>
-                          {opponent?.fullName || 'Unknown'}
-                        </div>
-                        <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.3)', flexShrink: 0, marginLeft: '8px' }}>
-                          {formatConvTime(conv.lastMsgAt)}
-                        </div>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '3px' }}>
-                        <div style={{
-                          color: unread > 0 ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.3)',
-                          fontSize: '0.78rem', overflow: 'hidden',
-                          textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1,
-                          fontWeight: unread > 0 ? 500 : 400,
-                        }}>
-                          {conv.lastMessage || 'Say hello!'}
-                        </div>
-                        {unread > 0 && (
-                          <div style={{
-                            background: 'var(--color-primary)', color: '#FFF',
-                            borderRadius: '999px', minWidth: '18px', height: '18px',
-                            padding: '0 5px', fontSize: '0.7rem', fontWeight: 700,
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            marginLeft: '6px', flexShrink: 0,
-                            boxShadow: '0 0 8px rgba(139,92,246,0.5)',
-                          }}>
-                            {unread > 9 ? '9+' : unread}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </button>
-                );
-              })
-            )}
+          <div style={{ flex: 1, overflowY: 'auto', padding: '8px' }}>
+            {filteredConversations.map(conv => {
+              const opponent = getOpponentUser(conv);
+              const isActive = activeConversation?.id === conv.id;
+              return (
+                <button key={conv.id} onClick={() => { setActiveConversation(conv); setMobileSidebar(false); }} style={{
+                  width: '100%', background: isActive ? 'var(--color-primary-glow)' : 'transparent',
+                  border: 'none', borderRadius: '10px', padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', textAlign: 'left',
+                  borderLeft: isActive ? '3px solid var(--color-primary)' : '3px solid transparent', marginBottom: '4px'
+                }}>
+                  <Avatar name={opponent?.fullName} size={36} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '0.85rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'var(--font-sans)' }}>{opponent?.fullName}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{conv.lastMessage || 'Click to chat'}</div>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* ── Chat Pane ───────────────────────── */}
+        {/* Right Side: Discord style chat space */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           {activeConversation ? (
             <>
               {/* Header */}
-              <div style={{
-                padding: '14px 20px',
-                borderBottom: '1px solid rgba(255,255,255,0.07)',
-                display: 'flex', alignItems: 'center',
-                justifyContent: 'space-between',
-                background: 'rgba(0,0,0,0.2)',
-                backdropFilter: 'blur(12px)',
-                flexShrink: 0,
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <button
-                    onClick={() => setMobileSidebar(true)}
-                    style={{
-                      display: 'none', background: 'none', border: 'none',
-                      cursor: 'pointer', color: 'rgba(255,255,255,0.6)', padding: '4px',
-                    }}
-                    className="mobile-back-btn"
-                  >
-                    <ArrowLeft size={20} />
-                  </button>
-                  <div style={{ position: 'relative' }}>
-                    <Avatar name={activeOpponent?.fullName} size={40} gradient="linear-gradient(135deg,#06B6D4,#0891b2)" />
-                    <OnlineDot online={isOpponentOnline} />
-                  </div>
+              <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,0,0,0.1)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <Avatar name={activeOpponent?.fullName} size={36} />
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#F3F4F6' }}>
-                      {activeOpponent?.fullName}
-                    </div>
-                    <div style={{
-                      fontSize: '0.75rem',
-                      color: isTyping ? '#10B981' : isOpponentOnline ? '#10B981' : 'rgba(255,255,255,0.35)',
-                      display: 'flex', alignItems: 'center', gap: '4px',
-                    }}>
-                      {isTyping ? (
-                        <>
-                          <span>typing</span>
-                          <TypingDots />
-                        </>
-                      ) : isOpponentOnline ? (
-                        <><Circle size={7} fill="#10B981" strokeWidth={0} /> Online</>
-                      ) : 'Offline'}
-                    </div>
+                    <h5 style={{ margin: 0, fontSize: '0.92rem', color: 'var(--text-main)', fontFamily: 'var(--font-sans)' }}>{activeOpponent?.fullName}</h5>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--status-success)' }}>
+                      {isTyping ? 'typing...' : 'online'}
+                    </span>
                   </div>
                 </div>
 
-                {/* Header actions */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <HeaderBtn
-                    onClick={startVideoCall}
-                    title="Video Call"
-                    style={{ color: '#10B981' }}
-                  >
-                    <Video size={18} />
-                  </HeaderBtn>
-                  <HeaderBtn title="More Options">
-                    <MoreVertical size={18} />
-                  </HeaderBtn>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <button onClick={() => setShowPins(!showPins)} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Pin size={14} /> Pinned
+                  </button>
+                  <button onClick={() => { setActiveCall({ targetUserId: activeOpponent.id, targetName: activeOpponent.fullName }); }} className="btn-primary" style={{ padding: '6px 12px', fontSize: '0.8rem' }}>
+                    <Video size={14} /> Join Video
+                  </button>
                 </div>
               </div>
 
-              {/* Messages */}
-              <div style={{
-                flex: 1, overflowY: 'auto', padding: '20px 24px',
-                display: 'flex', flexDirection: 'column',
-                background: 'rgba(0,0,0,0.08)',
-              }}>
-                {loading && messages.length === 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
-                    <Loader size={20} style={{ animation: 'spin 1s linear infinite', color: 'var(--color-primary)' }} />
+              {/* Pinned panel drawer */}
+              {showPins && (
+                <div style={{ background: '#18181B', padding: '16px', borderBottom: '1px solid var(--border-color)' }} className="animate-scale">
+                  <h5 style={{ margin: '0 0 10px', fontSize: '0.85rem', color: 'var(--color-primary)', fontFamily: 'var(--font-sans)' }}>CHANNEL PINNED RESOURCES:</h5>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    {pinnedResources.map((res, i) => (
+                      <div key={i} style={{ fontSize: '0.8rem' }}>
+                        • <a href={res.url} style={{ textDecoration: 'underline', color: 'var(--text-secondary)' }}>{res.title}</a>
+                      </div>
+                    ))}
                   </div>
-                )}
-                {msgsWithDates.map(item =>
-                  item.type === 'date'
-                    ? <DateSeparator key={item.key} dateStr={item.dateStr} />
-                    : (
-                      <MessageBubble
-                        key={item.key}
-                        msg={item.msg}
-                        isMine={item.msg.senderId === currentUser.id}
-                        prevMsg={item.prev}
-                      />
-                    )
-                )}
+                </div>
+              )}
+
+              {/* Messages feed */}
+              <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {messages.map((msg, i) => {
+                  const isMine = msg.senderId === currentUser.id;
+                  const isCode = msg.content?.startsWith('```');
+                  return (
+                    <div key={msg.id || i} className="chat-bubble-container" style={{ display: 'flex', flexDirection: isMine ? 'row-reverse' : 'row', gap: '12px', alignItems: 'flex-end' }}>
+                      <Avatar name={msg.sender?.fullName || (isMine ? currentUser.fullName : activeOpponent?.fullName)} size={36} />
+                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: isMine ? 'flex-end' : 'flex-start', maxWidth: '70%' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexDirection: isMine ? 'row-reverse' : 'row' }}>
+                          <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', fontFamily: 'var(--font-sans)' }}>
+                            {msg.sender?.fullName || (isMine ? currentUser.fullName : activeOpponent?.fullName)}
+                          </span>
+                          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{formatTime(msg.createdAt)}</span>
+                        </div>
+                        
+                        {isCode ? (
+                          <pre className="chat-snippet-code" style={{ background: isMine ? 'var(--color-primary)' : 'var(--bg-surface)', color: isMine ? '#fff' : 'var(--text-secondary)', borderRadius: '12px', padding: '10px 14px' }}>{msg.content.replace(/```/g, '')}</pre>
+                        ) : (
+                          <div style={{ fontSize: '0.88rem', color: isMine ? '#fff' : 'var(--text-main)', lineHeight: 1.4, background: isMine ? 'var(--color-primary)' : 'var(--bg-surface)', padding: '10px 14px', borderRadius: '12px', border: isMine ? 'none' : '1px solid var(--border-color)' }}>{msg.content}</div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Input */}
-              <form onSubmit={handleSend} style={{
-                padding: '14px 18px',
-                borderTop: '1px solid rgba(255,255,255,0.07)',
-                background: 'rgba(0,0,0,0.15)',
-                position: 'relative',
-                flexShrink: 0,
-              }}>
-                {showEmoji && (
-                  <EmojiPicker
-                    onSelect={(emoji) => { setText(t => t + emoji); inputRef.current?.focus(); }}
-                    onClose={() => setShowEmoji(false)}
-                  />
-                )}
-                <div style={{
-                  display: 'flex', alignItems: 'center', gap: '10px',
-                  background: 'rgba(255,255,255,0.05)',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  borderRadius: '14px', padding: '6px 6px 6px 14px',
-                  transition: 'border-color 0.2s',
-                }}>
-                  <button
-                    type="button"
-                    onClick={() => setShowEmoji(s => !s)}
-                    style={{
-                      background: 'none', border: 'none', cursor: 'pointer',
-                      color: showEmoji ? 'var(--color-primary)' : 'rgba(255,255,255,0.4)',
-                      display: 'flex', alignItems: 'center', padding: '4px', flexShrink: 0,
-                      transition: 'color 0.15s',
-                    }}
-                  >
-                    <Smile size={20} />
-                  </button>
-                  <input
-                    ref={inputRef}
-                    type="text"
-                    placeholder="Write a message..."
-                    value={text}
-                    onChange={e => setText(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    style={{
-                      flex: 1, background: 'none', border: 'none', outline: 'none',
-                      color: 'var(--text-main)', fontSize: '0.9rem',
-                      fontFamily: 'var(--font-sans)',
-                    }}
-                    autoComplete="off"
-                  />
-                  <button
-                    type="submit"
-                    disabled={!text.trim()}
-                    style={{
-                      background: text.trim()
-                        ? 'linear-gradient(135deg,#8B5CF6,#7c3aed)'
-                        : 'rgba(255,255,255,0.08)',
-                      border: 'none', borderRadius: '10px',
-                      width: '38px', height: '38px', cursor: text.trim() ? 'pointer' : 'not-allowed',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      color: '#FFF', flexShrink: 0, transition: 'all 0.2s',
-                      boxShadow: text.trim() ? '0 4px 12px rgba(139,92,246,0.3)' : 'none',
-                    }}
-                  >
-                    <Send size={16} />
-                  </button>
-                </div>
+              {/* Footer Input */}
+              <form onSubmit={handleSend} style={{ padding: '14px 18px', borderTop: '1px solid var(--border-color)', display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <input ref={inputRef} type="text" className="input-field" placeholder={`Message @${activeOpponent?.fullName}...`} style={{ flex: 1, height: '40px' }} value={text} onChange={e => setText(e.target.value)} onKeyDown={handleKeyDown} />
+                <button type="submit" className="btn-primary" style={{ padding: '0 16px', height: '40px' }} disabled={!text.trim()}>
+                  Send
+                </button>
               </form>
             </>
           ) : (
-            /* Empty state */
-            <div style={{
-              flex: 1, display: 'flex', flexDirection: 'column',
-              alignItems: 'center', justifyContent: 'center',
-              color: 'rgba(255,255,255,0.25)', gap: '16px',
-            }}>
-              <div style={{
-                width: 80, height: 80, borderRadius: '24px',
-                background: 'rgba(139,92,246,0.1)',
-                border: '1px solid rgba(139,92,246,0.2)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <MessageSquare size={36} style={{ color: 'rgba(139,92,246,0.5)' }} />
-              </div>
-              <div>
-                <div style={{
-                  fontFamily: 'var(--font-display)', fontWeight: 700,
-                  fontSize: '1.1rem', color: 'rgba(255,255,255,0.5)',
-                  textAlign: 'center', marginBottom: '6px',
-                }}>No conversation selected</div>
-                <div style={{ fontSize: '0.84rem', textAlign: 'center' }}>
-                  Pick a chat from the left, or visit Mentors to start messaging.
-                </div>
-              </div>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
+              <MessageCircle size={40} style={{ marginBottom: '12px', opacity: 0.3 }} />
+              <p style={{ margin: 0 }}>Select a chat profile to start talking.</p>
             </div>
           )}
         </div>
       </div>
-
-      <style>{`
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes ringPulse {
-          0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16,185,129,0.4); }
-          50% { transform: scale(1.06); box-shadow: 0 0 0 14px rgba(16,185,129,0); }
-        }
-        @keyframes typingBounce {
-          0%, 60%, 100% { transform: translateY(0); }
-          30% { transform: translateY(-4px); }
-        }
-      `}</style>
     </>
-  );
-}
-
-/* ─── Sub-components ─────────────────────── */
-function HeaderBtn({ children, onClick, title, style = {} }) {
-  return (
-    <button
-      onClick={onClick}
-      title={title}
-      style={{
-        background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)',
-        borderRadius: '10px', padding: '8px', cursor: 'pointer',
-        color: 'rgba(255,255,255,0.6)', display: 'flex', alignItems: 'center',
-        transition: 'all 0.15s', ...style,
-      }}
-      onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = '#FFF'; }}
-      onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = style.color || 'rgba(255,255,255,0.6)'; }}
-    >
-      {children}
-    </button>
-  );
-}
-
-function TypingDots() {
-  return (
-    <span style={{ display: 'inline-flex', gap: '2px', alignItems: 'center' }}>
-      {[0, 1, 2].map(i => (
-        <span key={i} style={{
-          width: 4, height: 4, borderRadius: '50%',
-          background: '#10B981', display: 'inline-block',
-          animation: `typingBounce 1s ease ${i * 0.15}s infinite`,
-        }} />
-      ))}
-    </span>
   );
 }

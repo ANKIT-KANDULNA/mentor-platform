@@ -131,7 +131,7 @@ export default function GlobalChat() {
                     <span style={{
                       fontSize: '0.65rem',
                       fontWeight: 'bold',
-                      color: senderRole === 'MENTOR' ? 'var(--color-secondary)' : senderRole === 'ADMIN' ? 'var(--status-danger)' : 'var(--color-primary)',
+                      color: senderRole === 'MENTOR' ? 'var(--color-value)' : senderRole === 'ADMIN' ? 'var(--status-danger)' : 'var(--color-primary)',
                       textTransform: 'uppercase',
                     }}>
                       [{senderRole}]

@@ -30,27 +30,21 @@ export default function Signup() {
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', fontFamily: 'var(--font-sans)' }}>
       {/* LEFT PANEL */}
-      <div style={{
-        flex: '0 0 45%',
-        background: 'linear-gradient(145deg, #0a1628 0%, #0f1f3d 50%, #13082a 100%)',
-        display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
-        padding: '60px 48px', position: 'relative', overflow: 'hidden',
-        animation: 'slideInLeft 0.6s ease',
-      }}>
-        <div style={{ position: 'absolute', width: '350px', height: '350px', borderRadius: '50%', background: 'rgba(6,182,212,0.1)', top: '-80px', right: '-80px', filter: 'blur(70px)' }} />
-        <div style={{ position: 'absolute', width: '300px', height: '300px', borderRadius: '50%', background: 'rgba(139,92,246,0.12)', bottom: '-60px', left: '-60px', filter: 'blur(60px)' }} />
+      <div className="auth-left-panel">
+        <div className="auth-orb-1" style={{ top: '-80px', right: '-80px', left: 'auto' }} />
+        <div className="auth-orb-2" style={{ bottom: '-60px', left: '-60px', right: 'auto' }} />
 
         <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '360px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '48px' }}>
-            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', fontWeight: 900, color: '#FFF', boxShadow: '0 0 24px rgba(139,92,246,0.5)' }}>M</div>
+            <div className="avatar" style={{ width: '48px', height: '48px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', fontWeight: 900, boxShadow: '0 0 24px rgba(5,150,105,0.4)' }}>M</div>
             <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem', fontWeight: 800, color: '#FFF', letterSpacing: '-0.03em' }}>MentorMatch</span>
           </div>
           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', fontWeight: 800, color: '#FFF', lineHeight: 1.2, marginBottom: '16px' }}>
             Start Your
-            <span style={{ display: 'block', background: 'linear-gradient(90deg, var(--color-secondary), var(--color-primary))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Growth Journey</span>
+            <span style={{ display: 'block', color: '#34D399' }}>Growth Journey</span>
             Today
           </h1>
-          <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.95rem', lineHeight: 1.6 }}>Whether you are a student looking for guidance or an expert ready to teach — we have a place for you.</p>
+          <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.95rem', lineHeight: 1.6 }}>Whether you are a student looking for guidance or an expert ready to teach — we have a place for you.</p>
         </div>
       </div>
 
@@ -70,9 +64,10 @@ export default function Signup() {
               ].map(({ value, label, sub, icon }) => (
                 <button key={value} type="button" onClick={() => setRole(value)} style={{
                   padding: '16px', borderRadius: '12px', border: `2px solid ${role === value ? 'var(--color-primary)' : 'var(--border-color)'}`,
-                  background: role === value ? 'var(--color-primary-glow)' : 'rgba(255,255,255,0.02)',
+                  background: role === value ? 'var(--color-primary-glow)' : 'var(--bg-surface)',
                   cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s',
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px',
+                  boxShadow: role === value ? '0 0 0 3px var(--color-primary-soft)' : 'var(--shadow-sm)',
                 }}>
                   <span style={{ color: role === value ? 'var(--color-primary)' : 'var(--text-muted)' }}>{icon}</span>
                   <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, color: role === value ? 'var(--color-primary)' : 'var(--text-main)', fontSize: '0.95rem' }}>{label}</div>
@@ -83,7 +78,7 @@ export default function Signup() {
           </div>
 
           {error && (
-            <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '10px', padding: '12px 16px', color: '#FCA5A5', fontSize: '0.875rem', marginBottom: '16px' }}>
+            <div style={{ background: 'var(--status-danger-bg)', border: '1px solid rgba(220,38,38,0.25)', borderRadius: '10px', padding: '12px 16px', color: 'var(--status-danger)', fontSize: '0.875rem', marginBottom: '16px' }}>
               {error}
             </div>
           )}
@@ -122,11 +117,6 @@ export default function Signup() {
           </p>
         </div>
       </div>
-      <style>{`
-        @keyframes slideInLeft { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
-        @keyframes slideInRight { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
-        @keyframes spin { to { transform: rotate(360deg); } }
-      `}</style>
     </div>
   );
 }

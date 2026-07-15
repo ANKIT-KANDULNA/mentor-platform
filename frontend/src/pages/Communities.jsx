@@ -17,7 +17,7 @@ import {
 
 /* ─── helpers ─────────────────────────────────────────────────────────── */
 const roleColor = (role) =>
-  role === 'MENTOR' ? 'var(--color-secondary)' : role === 'ADMIN' ? 'var(--status-danger)' : 'var(--color-primary)';
+  role === 'MENTOR' ? 'var(--color-value)' : role === 'ADMIN' ? 'var(--status-danger)' : 'var(--color-primary)';
 
 const fmt = (d) =>
   new Date(d).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -60,7 +60,7 @@ function CreateModal({ onClose, onCreate }) {
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <div>
-            <h2 style={{ margin: 0, fontSize: '1.3rem', color: 'var(--text-main)', fontFamily: 'var(--font-display)' }}>
+            <h2 style={{ margin: 0, fontSize: '1.3rem', color: 'var(--text-main)', fontFamily: 'var(--font-sans)', fontWeight: 600 }}>
               Create Community
             </h2>
             <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
@@ -165,7 +165,7 @@ function MembersModal({ communityId, onClose }) {
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <div>
-            <h2 style={{ margin: 0, fontSize: '1.3rem', color: 'var(--text-main)', fontFamily: 'var(--font-display)' }}>
+            <h2 style={{ margin: 0, fontSize: '1.3rem', color: 'var(--text-main)', fontFamily: 'var(--font-sans)', fontWeight: 600 }}>
               Community Members
             </h2>
             <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
@@ -193,14 +193,13 @@ function MembersModal({ communityId, onClose }) {
               return (
                 <div key={m.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderRadius: '10px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{
+                    <div className="avatar" style={{
                       width: '32px', height: '32px', borderRadius: '50%',
-                      background: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontWeight: 700, fontSize: '0.75rem', color: '#FFF',
                     }}>{initials}</div>
                     <div>
-                      <div style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-main)' }}>{u.fullName}</div>
+                      <div style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-main)', fontFamily: 'var(--font-sans)' }}>{u.fullName}</div>
                       <span style={{ fontSize: '0.72rem', color: roleColor(u.role), fontWeight: 700 }}>
                         {u.role}
                       </span>
@@ -321,16 +320,15 @@ function CommunityChat({ community, currentUser, isMember, onJoin, onLeave }) {
         background: 'rgba(0,0,0,0.15)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{
+          <div className="avatar" style={{
             width: '40px', height: '40px', borderRadius: '12px',
-            background: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             color: '#FFF', fontSize: '1.1rem', fontWeight: 700,
           }}>
             {community.name[0].toUpperCase()}
           </div>
           <div>
-            <div style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '1rem' }}>
+            <div style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '1rem', fontFamily: 'var(--font-sans)' }}>
               {community.name}
             </div>
             <button
@@ -366,7 +364,7 @@ function CommunityChat({ community, currentUser, isMember, onJoin, onLeave }) {
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '12px', color: 'var(--text-muted)' }}>
             <Lock size={40} style={{ color: 'var(--text-dark)' }} />
             <div style={{ textAlign: 'center' }}>
-              <p style={{ fontWeight: 600, color: 'var(--text-main)', marginBottom: '4px' }}>Join to participate</p>
+              <p style={{ fontWeight: 600, color: 'var(--text-main)', marginBottom: '4px', fontFamily: 'var(--font-sans)' }}>Join to participate</p>
               <p style={{ fontSize: '0.85rem', margin: 0 }}>{community.description || 'Be part of this community to view and send messages.'}</p>
             </div>
             <button className="btn btn-primary" onClick={handleJoin} disabled={joining} style={{ marginTop: '8px' }}>
@@ -380,7 +378,7 @@ function CommunityChat({ community, currentUser, isMember, onJoin, onLeave }) {
         ) : messages.length === 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)' }}>
             <Hash size={40} style={{ color: 'var(--text-dark)', marginBottom: '12px' }} />
-            <p style={{ fontWeight: 600, margin: '0 0 4px' }}>No messages yet</p>
+            <p style={{ fontWeight: 600, margin: '0 0 4px', fontFamily: 'var(--font-sans)' }}>No messages yet</p>
             <p style={{ fontSize: '0.85rem', margin: 0 }}>Be the first to say something!</p>
           </div>
         ) : (
@@ -389,7 +387,7 @@ function CommunityChat({ community, currentUser, isMember, onJoin, onLeave }) {
             return (
               <div key={msg.id} style={{ display: 'flex', flexDirection: 'column', alignItems: isMine ? 'flex-end' : 'flex-start' }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '4px', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                  <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>{msg.sender?.fullName || 'User'}</span>
+                  <span style={{ fontWeight: 600, color: 'var(--text-main)', fontFamily: 'var(--font-sans)' }}>{msg.sender?.fullName || 'User'}</span>
                   <span style={{ fontWeight: 700, color: roleColor(msg.sender?.role), textTransform: 'uppercase', fontSize: '0.63rem' }}>
                     [{msg.sender?.role || 'STUDENT'}]
                   </span>
@@ -400,7 +398,7 @@ function CommunityChat({ community, currentUser, isMember, onJoin, onLeave }) {
                   borderTopRightRadius: isMine ? '2px' : '12px',
                   borderTopLeftRadius: isMine ? '12px' : '2px',
                   background: isMine ? 'var(--color-primary)' : 'var(--bg-surface)',
-                  color: '#FFF', fontSize: '0.88rem', lineHeight: 1.5,
+                  color: isMine ? '#FFF' : 'var(--text-main)', fontSize: '0.88rem', lineHeight: 1.5,
                   boxShadow: 'var(--shadow-sm)', border: '1px solid var(--border-color)',
                   wordBreak: 'break-word',
                 }}>
@@ -529,7 +527,7 @@ export default function Communities() {
         {/* Sidebar Header */}
         <div style={{ padding: '20px 16px 12px', borderBottom: '1px solid var(--border-color)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1rem', color: 'var(--text-main)' }}>
+            <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '1rem', color: 'var(--text-main)' }}>
               Communities
             </span>
             <button
@@ -608,7 +606,7 @@ export default function Communities() {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)', gap: '12px' }}>
             <Globe size={48} style={{ color: 'var(--text-dark)' }} />
-            <p style={{ fontWeight: 600, color: 'var(--text-main)', margin: 0 }}>Select a community to start chatting</p>
+            <p style={{ fontWeight: 600, color: 'var(--text-main)', margin: 0, fontFamily: 'var(--font-sans)' }}>Select a community to start chatting</p>
             <p style={{ fontSize: '0.85rem', margin: 0 }}>Or create a new one to connect with others</p>
             <button className="btn btn-primary" onClick={() => setShowCreate(true)} style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Plus size={16} /> Create Community
@@ -642,13 +640,10 @@ function CommunityItem({ community, selected, onClick, isMember }) {
       onMouseLeave={(e) => { if (!selected) e.currentTarget.style.background = 'transparent'; }}
     >
       {/* Avatar */}
-      <div style={{
+      <div className="avatar" style={{
         width: '36px', height: '36px', borderRadius: '10px', flexShrink: 0,
-        background: selected
-          ? 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))'
-          : 'rgba(255,255,255,0.07)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: selected ? '#FFF' : 'var(--text-muted)',
+        color: '#FFF',
         fontWeight: 700, fontSize: '0.9rem',
       }}>
         {community.name[0].toUpperCase()}
@@ -656,9 +651,10 @@ function CommunityItem({ community, selected, onClick, isMember }) {
 
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{
-          fontSize: '0.85rem', fontWeight: selected ? 700 : 500,
+          fontSize: '0.85rem', fontWeight: selected ? 600 : 500,
           color: selected ? 'var(--color-primary)' : 'var(--text-main)',
           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+          fontFamily: 'var(--font-sans)',
         }}>
           {community.name}
         </div>

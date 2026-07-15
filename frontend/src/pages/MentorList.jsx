@@ -65,16 +65,16 @@ export default function MentorList() {
             value={search} onChange={e => setSearch(e.target.value)} />
           {search && <button onClick={() => setSearch('')} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><X size={16} /></button>}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-color)', borderRadius: '10px', padding: '8px 14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: '10px', padding: '8px 14px' }}>
           <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>Sort:</span>
           <select value={sort} onChange={e => setSort(e.target.value)} style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', fontSize: '0.82rem', cursor: 'pointer', outline: 'none', fontFamily: 'var(--font-sans)' }}>
-            {SORT_OPTIONS.map(o => <option key={o.value} value={o.value} style={{ background: '#131823' }}>{o.label}</option>)}
+            {SORT_OPTIONS.map(o => <option key={o.value} value={o.value} style={{ background: 'var(--bg-surface)', color: 'var(--text-main)' }}>{o.label}</option>)}
           </select>
         </div>
         <button onClick={() => setShowFilters(f => !f)} style={{
           display: 'flex', alignItems: 'center', gap: '6px',
-          background: showFilters ? 'var(--color-primary-glow)' : 'rgba(255,255,255,0.04)',
-          border: `1px solid ${showFilters ? 'rgba(139,92,246,0.3)' : 'var(--border-color)'}`,
+          background: showFilters ? 'var(--color-primary-glow)' : 'var(--bg-surface)',
+          border: `1px solid ${showFilters ? 'var(--color-primary)' : 'var(--border-color)'}`,
           borderRadius: '10px', padding: '8px 14px', cursor: 'pointer',
           color: showFilters ? 'var(--color-primary)' : 'var(--text-muted)', fontSize: '0.82rem',
           fontWeight: 600, transition: 'all 0.2s',
@@ -86,10 +86,10 @@ export default function MentorList() {
       <div style={{ display: 'grid', gridTemplateColumns: showFilters ? '260px 1fr' : '1fr', gap: '24px', alignItems: 'start' }}>
         {/* Filter Sidebar */}
         {showFilters && (
-          <div className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '24px', position: 'sticky', top: '80px' }}>
+          <div className="glass-panel animate-slide stagger-1" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '24px', position: 'sticky', top: '80px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h3 style={{ margin: 0, fontSize: '1rem', fontFamily: 'var(--font-display)' }}>Filters</h3>
-              {hasFilters && <button onClick={clearFilters} style={{ background: 'none', border: 'none', color: 'var(--color-accent)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}>Clear All</button>}
+              {hasFilters && <button onClick={clearFilters} style={{ background: 'none', border: 'none', color: 'var(--color-primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}>Clear All</button>}
             </div>
 
             {/* Branch Filter */}
@@ -141,7 +141,7 @@ export default function MentorList() {
             <div className="glass-panel" style={{ padding: '80px 20px', textAlign: 'center', color: 'var(--text-muted)' }}>
               <h3 style={{ fontSize: '1.25rem', color: 'var(--text-main)', marginBottom: '8px' }}>No mentors found</h3>
               <p style={{ margin: 0 }}>Try adjusting your filters or search terms.</p>
-              {hasFilters && <button onClick={clearFilters} className="btn btn-primary" style={{ marginTop: '20px' }}>Clear Filters</button>}
+              {hasFilters && <button onClick={clearFilters} className="btn-primary" style={{ marginTop: '20px', borderRadius: 'var(--radius-sm)' }}>Clear Filters</button>}
             </div>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(310px, 1fr))', gap: '20px' }}>
